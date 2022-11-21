@@ -8,6 +8,7 @@ export const inputHeight = '48px';
 export const buttonWidth = '140px';
 export const hdrFontBorder = '#304e93';
 const inputMainClr = '#3bc3e3';
+export const chartBkgClr = '#02a1c8';
 // export const gMarginCont = 27;
 
 var theme = createTheme({
@@ -139,7 +140,8 @@ export const myTheme = createTheme(theme, {
               backgroundColor: theme.palette.primary.main,
             },
             '&.MuiButtonBase-root:hover': {
-              boxShadow: '0px 2px 4px -1px rgba(0,0,0,0.2),0px 4px 5px 0px rgba(0,0,0,0.14),0px 1px 10px 0px rgba(0,0,0,0.12)',
+              boxShadow:
+                '0px 2px 4px -1px rgba(0,0,0,0.2),0px 4px 5px 0px rgba(0,0,0,0.14),0px 1px 10px 0px rgba(0,0,0,0.12)',
             },
           },
         },

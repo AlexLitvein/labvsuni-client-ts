@@ -1,31 +1,28 @@
-import { IAxisDefine } from '../init/init';
-import { ChartAxle } from './ChartAxle';
+import { AxesKey, IAxes } from '../types/types';
+import { Axle } from './Axle';
 
 export interface IChartAxisProps {
-  axis: IAxisDefine;
+  axis: IAxes;
 }
-// export function ChartAxis({ axis }: IChartAxisProps) {
-//   const out = [];
-//   let key: keyof IAxisDefine;
-//   for (key in axis) {
-//     const el = axis[key];
-//     out.push(<ChartAxle key={key} type={el.type} cls={el.cls} />);
-//   }
-//   return out;
-// }
 
 export function ChartAxis({ axis }: IChartAxisProps) {
-  // const out = [];
-  // let key: keyof IAxisDefine;
-  // for (key in axis) {
-  //   const el = axis[key];
-  //   out.push(<ChartAxle key={key} type={el.type} cls={el.cls} />);
-  // }
   return (
     <>
-      {(Object.keys(axis) as Array<keyof typeof axis>).map((key) => (
-        <ChartAxle key={key} type={axis[key].type} cls={axis[key].cls} />
+      {(Object.keys(axis) as Array<AxesKey>).map((key) => (
+        <Axle key={key} type={axis[key].type} cls={axis[key].class} />
       ))}
     </>
   );
 }
+
+// export function ChartAxis({ axis }: IChartAxisProps) {
+//   return (
+//     <>
+//       {(Object.keys(axis) as Array<AxesKey>).map((key) => {
+//         if (key !== '_id') {
+//           return <Axle key={key} type={axis[key].type} cls={axis[key].class} />;
+//         }
+//       })}
+//     </>
+//   );
+// }

@@ -1,6 +1,6 @@
 export interface ISvgMarkerProps {
   id: string;
-  cls: string;
+  cls: React.CSSProperties; // string;
   w: number;
   h: number;
   refX: number;
@@ -14,8 +14,7 @@ export const SvgMarker = ({ id, cls, w, h, refX, refY, mrkEl }: ISvgMarkerProps)
     <defs>
       <marker
         id={id}
-        className={cls}
-        // className={className}
+        style={cls}
         markerWidth={w}
         markerHeight={h}
         refX={refX}

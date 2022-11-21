@@ -12,4 +12,4 @@ export interface ISensData {
   h: number;
 }
 
-// export type ISensDataKey = keyof ISensData;
+export type ISensDataKey = keyof ISensData;

@@ -1,31 +1,67 @@
 import React, { useState, useEffect } from 'react';
 
-import { Box, Button, Stack, SxProps, TextField, Typography } from '@mui/material';
+import { Box, Button, Fade, Paper, Popper, Stack, SxProps, TextField, Typography } from '@mui/material';
 import { ChatRangeControls } from './ChatRangeControls';
 import { Calendar, Info } from './media';
 import { LeftPanel } from './LeftPanel';
 import { RightPanel } from './RightPanel';
+import { IRequest } from '../types/types';
 
 export interface IControlPanelProps {
-  //  tag: string;
+  onDate: (req: IRequest) => void;
   //  sx?: SxProps;
   //  children?: React.ReactNode[];
 }
 
-export const ControlPanel = ({}: /* tag, children, sx, ...rest */ IControlPanelProps) => {
-  //   const [date, setDate] = useState(new Date(Date.now()));
+export const ControlPanel = ({ onDate }: IControlPanelProps) => {
+  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
+  const [open, setOpen] = useState(false);
+  const [range, setRange] = useState(1);
+  let [req, set_req] = useState<IRequest>({ startData: new Date('2022-01-01'), endData: new Date('2022-01-02') });
+  // const onAddDate = (add: number) => {
 
-  const onAddDate = (add: number) => {
-    // setDate((prev) => {
-    //   const dt = new Date(prev);
-    //   dt.setDate(dt.getDate() + add);
-    //   //   fetchData(dt, range);
-    //   return dt;
-    // });
+  //   set_req((prev) => {
+  //     const dt = new Date(prev.date);
+  //     dt.setDate(dt.getDate() + add);
+  //     const out = { ...prev, date: dt };
+  //     onDate(out);
+  //     return out;
+  //   });
+  // };
+
+  // const handleClick =
+  // (newPlacement: PopperPlacementType) =>
+  // (event: React.MouseEvent<HTMLButtonElement>) => {
+  //   setAnchorEl(event.currentTarget);
+  //   setOpen((prev) => placement !== newPlacement || !prev);
+  //   setPlacement(newPlacement);
+  // };
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+    setOpen((prev) => !prev);
+  };
+
+  const onDateSelect = (date: Date) => {
+    setOpen(false);
+    set_req((prev) => {
+      const out = createReq(date, range);
+      onDate(out);
+      return out;
+    });
+  };
+
+  const createReq = (startData: Date, range: number) => {
+    const newStart = new Date(startData);
+    newStart.setDate(newStart.getDate() + range);
+
+    const newEnd = new Date(newStart);
+    newEnd.setDate(newEnd.getDate() + range);
+
+    return { startData: newStart, endData: newEnd } as IRequest;
   };
 
   return (
-    // sx={{...sx, }} {...rest}
     <Stack
       direction='row'
       sx={{
@@ -36,25 +72,50 @@ export const ControlPanel = ({}: /* tag, children, sx, ...rest */ IControlPanelP
         backgroundColor: (theme) => theme.palette.background.default,
       }}
     >
-      <Stack direction='row' className='ctrls-left-wrp'>
-        <Button variant='contained' sx={{ height: '100%' }}>
-          {Calendar}
-        </Button>
-        {/* <LeftPanel/>        */}
-      </Stack>
+      <Popper open={open} anchorEl={anchorEl} placement='bottom-start'>
+        {/* {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={350}>
+            <Paper>
+              <Typography sx={{ p: 2 }}>The content of the Popper.</Typography>
+            </Paper>            
+          </Fade>
+        )} */}
+        <LeftPanel date={req.startData} onDate={onDateSelect} />
+      </Popper>
+
+      {/* <Stack direction='row' className='ctrls-left-wrp'> */}
+      <Button variant='contained' sx={{ height: '100%' }} onClick={handleClick}>
+        {Calendar}
+      </Button>
+      {/* <LeftPanel/>        */}
+      {/* </Stack> */}
 
       <ChatRangeControls
-        onClick={function (range: number): void {
-          onAddDate(range);
+        range={range}
+        onSelRange={(range: number) => {
+          setRange(range);
+
+          set_req((prev) => {
+            const out = createReq(prev.startData, range);
+            onDate(out);
+            return out;
+          });
+        }}
+        onClickArrow={(range: number) => {
+          set_req((prev) => {
+            const out = createReq(prev.startData, range);
+            onDate(out);
+            return out;
+          });
         }}
       />
 
-      <div className='ctrls-right-wrp'>
-        <Button variant='contained' sx={{ height: '100%' }}>
-          {Info}
-        </Button>
-        {/* <RightPanel/> */}
-      </div>
+      {/* <div className='ctrls-right-wrp'> */}
+      <Button variant='contained' sx={{ height: '100%' }}>
+        {Info}
+      </Button>
+      {/* <RightPanel/> */}
+      {/* </div> */}
     </Stack>
   );
 };
