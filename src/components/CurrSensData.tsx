@@ -5,12 +5,14 @@ import { Snowflake } from './media';
 
 export interface ICurrSensDataCardProps {
   currSensData: ISensData;
+  onUpdate: () => void;
 }
 
-const CurrSensDataCard = ({ currSensData }: ICurrSensDataCardProps) => {
+const CurrSensDataCard = ({ currSensData, onUpdate }: ICurrSensDataCardProps) => {
   const rotate = () => {
     let a = 0;
     return (e: { currentTarget: { style: { transform: string } } }) => {
+      onUpdate();
       e.currentTarget.style.transform = `rotate(${(a -= 360)}deg)`;
       // props.fetchDataFu(new Date(Date.now()), 1);
     };

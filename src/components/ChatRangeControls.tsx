@@ -19,7 +19,7 @@ export interface IChatRangeControlsProps {
   //  sx?: SxProps;
   //  children?: React.ReactNode[];
   onSelRange: (range: number) => void;
-  onClickArrow: (range: number) => void;
+  onClickArrow: (addDays: number) => void;
 }
 
 export const ChatRangeControls = ({ range, onSelRange, onClickArrow }: IChatRangeControlsProps) => {

@@ -5,7 +5,7 @@ import { hdrFontBorder } from '../mui/theme';
 // import { ReactComponent as r1 } from 'media/logo.svg';
 
 // transform='scale(-1 1) translate(-100 0)'
-const getIcon = (nameFile: string, nameIcon: string, vbox: number, fill: string, transform: string = 'none') => {
+const getIcon = (nameFile: string, nameIcon: string, vbox: number, fill: string, transform: string = '') => {
   return (
     <SvgIcon viewBox={`0 0 ${vbox} ${vbox}`} style={{ width: 32, height: 32, fill: `${fill}` }} transform={transform}>
       <use xlinkHref={`${nameFile}#${nameIcon}`} />

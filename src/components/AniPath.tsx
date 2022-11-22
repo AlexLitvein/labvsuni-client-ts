@@ -10,8 +10,12 @@ export interface IAniPathProps {
 }
 
 export const AniPath = ({ id, rcChart, axis, data }: IAniPathProps) => {
-  // console.log('AniPath');
   const [td, setTD] = useState<IAniPath>({ t: '', d: '', data: [] });
+
+  // console.log('AniPath->',{
+  //   td_log: td,
+  //   id,
+  // });
 
   useEffect(() => {
     setTD((prev) => {
@@ -30,7 +34,6 @@ export const AniPath = ({ id, rcChart, axis, data }: IAniPathProps) => {
   }, [data, rcChart]);
 
   return (
-    // <path className='chart1i0i0-path' style={{ stroke: '#ff0000', marker: `url("#mrk_${id}")` }} d={td.d}>
     <path
       style={{
         strokeWidth: '2px',
@@ -42,7 +45,7 @@ export const AniPath = ({ id, rcChart, axis, data }: IAniPathProps) => {
       d={td.d}
     >
       <animate id={`ani_${id}`} begin='ani_trigg.begin' attributeName='d' dur='300ms' to={td.t} fill='freeze' />
-      {/* <animate id={`ani_${id}`} begin="0s" attributeName="d" dur="1s" fill="freeze" to={td.t} /> */}
+      {/* <animate id={`ani_${id}`} begin='0s' attributeName='d' dur='1s' to={td.t} fill='freeze' /> */}
     </path>
   );
   // return 0;

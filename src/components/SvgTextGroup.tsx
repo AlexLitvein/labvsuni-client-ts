@@ -22,15 +22,8 @@ export const TextGroup = ({ x, y, orient, offsX, offsY, texts, clr, align = Alig
     ox = offsY;
     oy = offsX;
   }
-  // console.log(`offsX: ${offsX} offsY: ${offsY}`);
-  // console.log("x ",x);
   return (
-    <g
-      className='chart1i0i0-axis_text'
-      fill={clr}
-      transform={`translate(${x}, ${y}) rotate(${angle})`}
-      style={{ textAnchor: align }}
-    >
+    <g fill={clr} transform={`translate(${x}, ${y}) rotate(${angle})`} style={{ textAnchor: align }}>
       {texts.map((el, i) => {
         return <TextSvg key={i} x={ox * i} y={oy * i} text={el} />;
       })}

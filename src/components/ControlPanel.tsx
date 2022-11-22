@@ -8,16 +8,20 @@ import { RightPanel } from './RightPanel';
 import { IRequest } from '../types/types';
 
 export interface IControlPanelProps {
-  onDate: (req: IRequest) => void;
-  //  sx?: SxProps;
+  date: Date;
+  range: number;
+  onDate: (startData: Date, range: number) => void;
   //  children?: React.ReactNode[];
 }
 
-export const ControlPanel = ({ onDate }: IControlPanelProps) => {
+export const ControlPanel = ({ date, range, onDate }: IControlPanelProps) => {
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
-  const [range, setRange] = useState(1);
-  let [req, set_req] = useState<IRequest>({ startData: new Date('2022-01-01'), endData: new Date('2022-01-02') });
+  // const [range, setRange] = useState(1);
+  // let [req, set_req] = useState<IRequest>({ startData: new Date('2022-01-01'), endData: new Date('2022-01-02') });
+  // let [startData, set_startData] = useState(new Date('2022-01-08'));
+  let [startData, set_startData] = useState(date);
+
   // const onAddDate = (add: number) => {
 
   //   set_req((prev) => {
@@ -44,22 +48,26 @@ export const ControlPanel = ({ onDate }: IControlPanelProps) => {
 
   const onDateSelect = (date: Date) => {
     setOpen(false);
-    set_req((prev) => {
-      const out = createReq(date, range);
-      onDate(out);
-      return out;
+    set_startData((prev) => {
+      // const out = createReq(date, range);
+
+      //      const newEnd = new Date(startData);
+      // newEnd.setDate(newEnd.getDate() + range);
+
+      onDate(date, range);
+      return date;
     });
   };
 
-  const createReq = (startData: Date, range: number) => {
-    const newStart = new Date(startData);
-    newStart.setDate(newStart.getDate() + range);
+  // const createReq = (startData: Date, range: number) => {
+  //   // const newStart = new Date(startData);
+  //   // newStart.setDate(newStart.getDate());
 
-    const newEnd = new Date(newStart);
-    newEnd.setDate(newEnd.getDate() + range);
+  //   const newEnd = new Date(startData);
+  //   newEnd.setDate(newEnd.getDate() + range);
 
-    return { startData: newStart, endData: newEnd } as IRequest;
-  };
+  //   return { startData: startData, endData: newEnd } as IRequest;
+  // };
 
   return (
     <Stack
@@ -80,7 +88,8 @@ export const ControlPanel = ({ onDate }: IControlPanelProps) => {
             </Paper>            
           </Fade>
         )} */}
-        <LeftPanel date={req.startData} onDate={onDateSelect} />
+        {/* <LeftPanel date={req.startData} onDate={onDateSelect} /> */}
+        <LeftPanel date={startData} onDate={onDateSelect} />
       </Popper>
 
       {/* <Stack direction='row' className='ctrls-left-wrp'> */}
@@ -92,20 +101,16 @@ export const ControlPanel = ({ onDate }: IControlPanelProps) => {
 
       <ChatRangeControls
         range={range}
-        onSelRange={(range: number) => {
-          setRange(range);
-
-          set_req((prev) => {
-            const out = createReq(prev.startData, range);
-            onDate(out);
-            return out;
-          });
+        onSelRange={(r) => {
+          // setRange(r);
+          onDate(startData, r);
         }}
-        onClickArrow={(range: number) => {
-          set_req((prev) => {
-            const out = createReq(prev.startData, range);
-            onDate(out);
-            return out;
+        onClickArrow={(addDays: number) => {
+          set_startData((prev) => {
+            const newData = new Date(prev);
+            newData.setDate(newData.getDate() + addDays);
+            onDate(newData, range);
+            return newData;
           });
         }}
       />

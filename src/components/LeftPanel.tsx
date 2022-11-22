@@ -19,6 +19,9 @@ export const LeftPanel = ({ date, onDate }: ILeftPanelProps) => {
   // const [date, set_date] = React.useState<Dayjs | null>(dayjs('2022-01-01')); // 2014-08-18T21:11:54
 
   const handleChange = (newValue: Dayjs | null) => {
+    console.log('LeftPanel->', {
+      newValue_log: newValue?.toDate(),
+    });
     // set_date(newValue);
     onDate(newValue?.toDate() || new Date(Date.now()));
     // console.log({

@@ -27,6 +27,11 @@ export interface IAniPath {
   data: number[];
 }
 
+export interface ICursorText {
+  txt: string;
+  clr: string;
+}
+
 export interface IRect {
   top: number;
   left: number;
@@ -40,13 +45,6 @@ export interface IChartData {
   p: number[];
   h: number[];
 }
-
-// export interface IChartData<S, N> {
-//   _id: S[];
-//   t: N[];
-//   p: N[];
-//   h: N[];
-// }
 
 export interface IAxis {
   name: string;

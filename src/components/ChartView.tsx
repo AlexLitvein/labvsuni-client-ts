@@ -1,31 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Stack, SxProps, Typography } from '@mui/material';
-import { IAxes, IAxis, IChartData, IRect } from '../types/types';
+import React from 'react';
+import { Box } from '@mui/material';
+import { IChartData } from '../types/types';
 import { MyChart } from './Chart';
 import { chartBkgClr } from '../mui/theme';
 import { ChartAxis } from './ChartAxis';
 import { ChartData } from './ChartData';
 import { SvgMarker } from './SvgMarker';
+import { ChartCursor } from './ChartCursor';
 
 export interface IChartViewProps {
   chartData?: IChartData;
-  // rcChart: IRect;
-  // axes: IAxes;
 }
 
-// ???
 export const ChartView = ({ chartData }: IChartViewProps) => {
+  MyChart.aniTrigEl.current?.beginElement();
   return (
     <Box
       sx={{
-        // position: 'relative',
         width: '100%',
         height: '100%',
         backgroundColor: chartBkgClr,
         borderLeft: 8,
         borderBottom: 8,
         boxSizing: 'border-box',
-        // boxSizing: 'content-box',
       }}
     >
       <svg
@@ -35,6 +32,18 @@ export const ChartView = ({ chartData }: IChartViewProps) => {
         width={MyChart.svgRect.right - MyChart.svgRect.left}
         height={MyChart.svgRect.bottom - MyChart.svgRect.top}
       >
+        <path d='M0 -10h10'>
+          <animate
+            id='ani_trigg'
+            ref={MyChart.aniTrigEl}
+            begin='indefinite'
+            attributeName='d'
+            dur='0s'
+            to='M0 -10h20'
+            fill='freeze'
+          />
+        </path>
+
         {/* Для вычисления высоты и ширины текста */}
         <text x={-100} y={-100} ref={MyChart.txtRef}>
           test
@@ -52,7 +61,6 @@ export const ChartView = ({ chartData }: IChartViewProps) => {
 
         <SvgMarker
           id={'mrkHAxis'}
-          // cls='chart1i0i0-axis_hmarker'
           cls={{ stroke: '#1d5395', strokeWidth: '2px', fill: 'none' }}
           w={2}
           h={6}
@@ -67,6 +75,8 @@ export const ChartView = ({ chartData }: IChartViewProps) => {
 
         {MyChart.renderLabelsForHAxis('_id', chartData)}
         {MyChart.renderLabelsForVAxes()}
+
+        {chartData && <ChartCursor chart={MyChart} data={chartData} />}
       </svg>
     </Box>
   );

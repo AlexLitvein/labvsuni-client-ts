@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Stack, SxProps, Typography } from '@mui/material';
+import React from 'react';
 import { IAxes, IAxis, IChartData, IRect } from '../types/types';
 import { ISensDataKey } from '../types/dtos';
 import { AniPath } from './AniPath';
-import { MyChart } from './Chart';
 
 export interface IChartDataProps {
   chartData: IChartData;
@@ -11,7 +9,6 @@ export interface IChartDataProps {
   axes: IAxes;
 }
 
-// ???
 export const ChartData = ({ axes, rcChart, chartData }: IChartDataProps) => {
   return (
     <>

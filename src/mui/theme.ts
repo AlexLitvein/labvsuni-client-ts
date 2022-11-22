@@ -26,7 +26,7 @@ var theme = createTheme({
     // },
     text: {
       primary: hdrFontBorder,
-      secondary: '#838383',
+      // secondary: '#838383',
       // disabled: '#00ff00',
     },
     // common: {
