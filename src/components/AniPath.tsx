@@ -1,25 +1,29 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AxisType, IAniPath, IAxis, IRect } from '../types/types';
+import { buildAniPath } from '../utils/helpers';
 import { MyChart } from './Chart';
 
 export interface IAniPathProps {
   id: string;
+  lnHSeg: number;
   rcChart: IRect;
   axis: IAxis;
   data: number[];
 }
 
-export const AniPath = ({ id, rcChart, axis, data }: IAniPathProps) => {
+export const AniPath = ({ id, lnHSeg, rcChart, axis, data }: IAniPathProps) => {
   const [td, setTD] = useState<IAniPath>({ t: '', d: '', data: [] });
 
-  // console.log('AniPath->',{
+  // console.log('AniPath->', {
+  //   rcChart,
   //   td_log: td,
   //   id,
   // });
 
   useEffect(() => {
     setTD((prev) => {
-      const to = MyChart.buildAniPath(rcChart, axis.min, axis.max, data);
+      // const to = MyChart.buildAniPath(rcChart, axis.min, axis.max, data);
+      const to = buildAniPath(lnHSeg, rcChart, axis.min, axis.max, data);
       const newTD: IAniPath = { t: '', d: '', data: [] };
 
       if (prev.data.length === 0 || prev.data.length !== data.length) {

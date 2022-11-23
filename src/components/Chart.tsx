@@ -2,12 +2,24 @@ import { Box } from '@mui/material';
 import React, { useRef } from 'react';
 // import { AxesKey, AxisKey, IAxes, IAxis } from '../init';
 import { chartBkgClr } from '../mui/theme';
-import { IAxes, AxesKey, IAxis, AxisType, IRect, IChartData, ISize, Align, ICursorText } from '../types/types';
+import {
+  IAxes,
+  AxesKey,
+  IAxis,
+  AxisType,
+  IRect,
+  IChartData,
+  ISize,
+  Align,
+  ICursorText,
+  INoteParams,
+  IPos,
+} from '../types/types';
 import { ChartAxis } from './ChartAxis';
 import { Axle } from './Axle';
 import { SvgMarker } from './SvgMarker';
 import { ISensData, ISensDataKey } from '../types/dtos';
-import { aprox, formatDateStr } from '../utils/helpers';
+import { aprox, formatDateStr, getStrBoundSize, truncNum } from '../utils/helpers';
 import { TextGroup } from './SvgTextGroup';
 import { ChartData } from './ChartData';
 
@@ -20,10 +32,11 @@ export class Chart {
   svgRef = React.createRef<SVGSVGElement>();
   txtRef = React.createRef<SVGTextElement>();
   aniTrigEl = React.createRef<SVGAnimateElement>();
-  // private svgRef?: React.RefObject<SVGSVGElement>;
 
+  // INFO: в своих координатах
   private rcSvg: IRect = { left: 0, top: 0, right: 0, bottom: 0 }; // DOMRect;
-  private rcChart: IRect = { left: 0, top: 0, right: 0, bottom: 0 };
+  // INFO: в координатах svg
+  private _rcChart: IRect = { left: 0, top: 0, right: 0, bottom: 0 };
   private paddig: IRect = { left: 20, top: 30, right: 20, bottom: 20 };
   private brdParent: IRect = { left: 8, top: 0, right: 0, bottom: 8 };
 
@@ -31,8 +44,15 @@ export class Chart {
   private vLabelsBndSz: ISize = { width: 1, height: 1 };
   private _axesTxtOffs = 10;
 
-  noteW = 0;
-  noteH = 0;
+  // noteW = 0;
+  // noteH = 0;
+  // private _mousePos: IPos = { x: 0, y: 0 };
+  // set mousePos(pos: IPos) {
+  //   this._mousePos = pos;
+  // }
+  // get mousePos() {
+  //   return this._mousePos;
+  // }
 
   get axesTxtOffs() {
     return this._axesTxtOffs;
@@ -45,143 +65,146 @@ export class Chart {
 
   constructor() {}
 
-  // WARN: для ортогональных линий, ширину использовать кратную 2 пикселям, координаты целочисленные
-  // Math.trunc(n); лучше отсекать, чем округлять, иначе сумма сегментов иногда
-  // будет больше отрезка в который они должны уложиться
-  // умножение на 0.1 вместо деления на 10, порождает много цифр после запятой
-  truncNum(n: number) {
-    return Math.trunc(n * 10) / 10;
-  } // * 0.1
-
-  // get rcChart()=>this.rcChart;
+  get rcChart() {
+    return this._rcChart;
+  }
 
   setAxis(key: AxesKey, axis: IAxis) {
     this._axes[key] = axis;
   }
 
   get lnHSeg() {
-    return this.truncNum((this.rcChart.right - this.rcChart.left) / this._numHSeg);
+    return truncNum((this.rcChart.right - this.rcChart.left) / this._numHSeg);
   }
 
   get lnVSeg() {
-    return this.truncNum((this.rcChart.bottom - this.rcChart.top) / this.numVSeg);
+    return truncNum((this.rcChart.bottom - this.rcChart.top) / this.numVSeg);
   }
 
   get svgRect() {
     return this.rcSvg;
   }
-  get chartRect() {
-    return this.rcChart;
-  }
+  // get chartRect() {
+  //   return this.rcChart;
+  // }
+
+  // rcChart(): IRect {
+  //   return {
+  //     left: this.rcSvg.left + this.paddig.left,
+  //     top: this.rcSvg.top + this.paddig.top,
+  //     right: this.rcSvg.right - this.paddig.right,
+  //     bottom: this.rcSvg.bottom - this.paddig.bottom,
+  //   };
+  // }
+
+  // get rcChart(): IRect {
+  //   return {
+  //     left: this.rcSvg.left + this.paddig.left,
+  //     top: this.rcSvg.top + this.paddig.top,
+  //     right: this.rcSvg.right - this.paddig.right,
+  //     bottom: this.rcSvg.bottom - this.paddig.bottom,
+  //   };
+  // }
 
   get axes2() {
     return this._axes;
   }
 
-  testPos(x: number, y: number) {
-    const right = this.rcChart.left + this.lnHSeg * this.numHSeg;
-    x = x < this.rcChart.left ? this.rcChart.left : x;
-    x = x > right ? right : x;
-
-    y = y < this.rcChart.top ? this.rcChart.top : y;
-    y = y > this.rcChart.bottom ? this.rcChart.bottom : y;
-    return { x, y };
-  }
-
-  createSvgRoundRect(x: number, y: number, w: number, h: number, r: number) {
-    return `
-        M${x},${y} a${r},${r} 0 0,1 ${r},${-r}
-        h${w - (r << 1)} a${r},${r} 0 0,1 ${r},${r}
-        v${h - r} a${r},${r} 0 0,1 ${-r},${r}
-        h${-w + (r << 1)} a${r},${r} 0 0,1 ${-r},${-r}z
-        `;
-
-    // return `
-    //     M${x},${y} a${r},${r} 0 0,1 ${r},${-r}
-    //     h${w - (r << 1)} a${r},${r} 0 0,1 ${r},${r}
-    //     v${h - r} a${r},${r} 0 0,1 ${-r},${r}
-    //     h${-w + (r << 1)} a${r},${r} 0 0,1 ${-r},${-r}z
-    //     `;
-  }
-
-  getVal(x: number, y: number, data: IChartData) {
-    const rcClient = this.chartRect;
+  //INFO: x, y в пространстве  chart.svgRef
+  getCursorValues(pos: IPos, data: IChartData) {
+    const rcClient = this.rcChart;
     const out: ICursorText[] = [];
-    let sensDataByKey = data['t'];
-    let idxDataHit = Math.trunc((x - rcClient.left) / this.lnHSeg);
-    let posInRange = (x - rcClient.left) % this.lnHSeg;
-    let totalW = this.axesTxtOffs << 1; // добавляем отступы
-    let totalH = totalW;
+    // let idxDataHit = Math.trunc((pos.x - rcClient.left) / this.lnHSeg);
+    // let posInRange = (pos.x - rcClient.left) % this.lnHSeg;
+    let idxDataHit = Math.trunc(pos.x / this.lnHSeg);
+    let posInRange = pos.x % this.lnHSeg;
 
-    let v1 = sensDataByKey[idxDataHit];
-    let v2 = idxDataHit + 1 >= sensDataByKey.length ? sensDataByKey[idxDataHit] : sensDataByKey[idxDataHit + 1];
-    let apx = aprox(v1, v2, this.lnHSeg, posInRange).toFixed(1);
+    (Object.keys(data) as Array<ISensDataKey>).forEach((key, i) => {
+      let sensDataByKey = data[key];
+      idxDataHit = idxDataHit >= sensDataByKey.length - 1 ? idxDataHit - 1 : idxDataHit;
 
-    let str = `${this.axes2['t'].name}: ${apx}`;
-    const sz = this.getStrBoundSize(str, 'note-text');
+      let apx = 0;
+      let apxStr = '';
+      let v1 = sensDataByKey[idxDataHit];
+      let v2 = sensDataByKey[idxDataHit + 1];
+      if (typeof sensDataByKey[0] === 'string') {
+        v1 = Date.parse(v1 as string);
+        v2 = Date.parse(v2 as string);
+      }
 
-    totalW += Math.max(totalW, sz.width);
-    totalH += Math.max(totalH, sz.height);
-    out.push({ clr: this.axes2['t'].color, txt: str });
+      apx = aprox(v1 as number, v2 as number, this.lnHSeg, posInRange);
 
-    // sensDataByKey.forEach(el=>{
+      if (typeof sensDataByKey[0] === 'string') {
+        let d = new Date(apx).toISOString();
+        apxStr = d.slice(0, 16);
+      } else {
+        apxStr = apx.toFixed(1);
+      }
+
+      let str = `${this.axes2[key].name}: ${apxStr}`;
+      // const sz = this.getStrBoundSize(str, 'note-text');
+
+      // totalW = Math.max(totalW, sz.width);
+      // totalH = sz.height * (i + 1);
+      out.push({ clr: this.axes2[key].color, txt: str });
+    });
+
+    // this.noteW = totalW + (this.axesTxtOffs << 1); // добавляем отступы;
+    // this.noteH = totalH + (this.axesTxtOffs << 1);
+
+    // console.log({
+    //   x,
+    //   idxDataHit,
+    //   rcClient,
     // });
 
-    this.noteW = totalW;
-    this.noteH = totalH;
-
-    console.log({
-      sz_log: sz,
-      totalW,
-      totalH,
-    });
+    // console.log({
+    //   sz_log: sz,
+    //   totalW,
+    //   totalH,
+    // });
 
     return out;
   }
 
   resize() {
-    // INFO: возвращаются float коорд
+    // INFO: границы входят размеры
     const rc = this.svgRef?.current?.parentElement?.getBoundingClientRect();
-    // const w = this.svgRef?.current?.parentElement?.style.width;
-    // const rcs = this.svgRef?.current?.parentElement?.getClientRects();
 
     if (rc) {
-      // console.log('resize->', {
-      //   rc,
-      //   rcs,
-      // });
-
-      // this.lnHSeg = (rc?.width - this.paddig.left - this.paddig.right) / this.numHSeg;
-      // this.lnVSeg = (rc?.height - this.paddig.top - this.paddig.bottom) / this.numVSeg;
-
-      // this.rcSvg = { left: 0, top: 0, right: rc.width, bottom: rc.height };
       this.rcSvg = {
+        // left: rc.left + this.brdParent.left,
+        // top: rc.top + this.brdParent.top,
+        // right: rc.right - this.brdParent.right,
+        // bottom: rc.bottom - this.brdParent.bottom,
         left: 0,
         top: 0,
         right: rc.width - this.brdParent.left - this.brdParent.right,
         bottom: rc.height - this.brdParent.top - this.brdParent.bottom,
       };
-      this.rcChart = {
-        left: this.paddig.left,
-        top: this.paddig.top,
-        right: rc.width - this.paddig.right,
-        bottom: rc.height - this.paddig.bottom,
+
+      this._rcChart = {
+        left: this.rcSvg.left + this.paddig.left,
+        top: this.rcSvg.top + this.paddig.top,
+        right: this.rcSvg.right - this.paddig.right,
+        bottom: this.rcSvg.bottom - this.paddig.bottom,
       };
     }
 
-    // console.log('resize->', {
-    //   this_rcClient_log: this.rcClient,
-    //   current: this.svgRef?.current,
+    // console.log('getBoundingClientRect->', {
+    //   rc: rc,
+    //   rcSvg: this.rcSvg,
+    //   rcChart: this._rcChart,
     // });
   }
 
   buildHAxisPath() {
     let x = this.rcChart.left;
     let y = this.rcChart.bottom;
-    let d = `M${this.truncNum(x)} ${this.truncNum(y)}`;
+    let d = `M${truncNum(x)} ${truncNum(y)}`;
 
     for (let i = 1; i <= this._numHSeg; i++) {
-      d += AxisType.H + this.truncNum(x + this.lnHSeg * i);
+      d += AxisType.H + truncNum(x + this.lnHSeg * i);
     }
     return d;
   }
@@ -189,10 +212,10 @@ export class Chart {
   buildVAxisPath() {
     let x = this.rcChart.left;
     let y = this.rcChart.top;
-    let d = `M${this.truncNum(x)} ${this.truncNum(y)}`;
+    let d = `M${truncNum(x)} ${truncNum(y)}`;
 
     for (let i = 1; i <= this.numVSeg; i++) {
-      d += AxisType.V + this.truncNum(y + this.lnVSeg * i);
+      d += AxisType.V + truncNum(y + this.lnVSeg * i);
     }
     return d;
   }
@@ -249,67 +272,16 @@ export class Chart {
     return out;
   }
 
-  // convertArrObjectsToObjectPropertyArrays(startDate: Date, rangeDays: number, sensDatas: ISensData[]) {
-  //   this.numHSeg = rangeDays * 24;
-  //   const out: IChartData = { _id: [], t: [], p: [], h: [] };
-  //   var newDate = new Date(startDate);
-  //   newDate.setHours(newDate.getHours() - 1);
-  //   var nullSensData: ISensData = { _id: '', t: this._axes['t'].min, p: this._axes['p'].min, h: this._axes['h'].min };
-  //   var currDate, currMonth, currDay, currHour, isNextMonth, isNextDay, isNextHour, currSensData;
-  //   var prevDate = new Date(startDate);
-  //   prevDate.setDate(prevDate.getDate() - 1);
-
-  //   for (let i = 0; i < rangeDays * 24 + 1; i++) {
-  //     // currHour = i === 24 ? 0 : i;
-  //     // newDate.setHours(newDate.getHours() + currHour);
-  //     newDate.setHours(newDate.getHours() + 1);
-  //     nullSensData._id = newDate.toISOString();
-
-  //     currSensData = sensDatas[i] || nullSensData;
-
-  //     console.log({
-  //       sensDatas_i: sensDatas[i],
-  //       i,
-  //       currSensData,
-  //     });
-
-  //     let key: keyof ISensData;
-  //     for (key in currSensData) {
-  //       out[key].push(currSensData[key] as never);
-  //     }
-  //   }
-
-  //   console.log({
-  //     out_log: out,
-  //   });
-
-  //   return out;
-  // }
-
-  getStrBoundSize(str: string, cls: string) {
-    let bbox = { width: 0, height: 0 };
-    if (this.txtRef.current) {
-      this.txtRef.current.innerHTML = str;
-      // this.txtRef.current.setAttribute('class', cls);
-
-      // this.txtRef.current.style.bo
-      bbox = this.txtRef.current.getBBox();
-    }
-    return { width: this.truncNum(bbox.width), height: this.truncNum(bbox.height) };
-  }
-
   calcPadding(chartData: IChartData) {
-    // if (this.chartData) {
     // INFO: без txtRef вызывало ошибку, типа еще не смонтирован в DOM
     // const hLabel = formatDateStr(chartData['_id'][0]);
     const hLabel = chartData['_id'][0].slice(0, 16);
     const vLabel = this._axes['p'].max.toString();
-    this.hLabelsBndSz = this.getStrBoundSize(hLabel, 'txt-axis');
-    this.vLabelsBndSz = this.getStrBoundSize(vLabel, 'txt-axis');
+    this.hLabelsBndSz = getStrBoundSize(this.txtRef, hLabel, 'txt-axis');
+    this.vLabelsBndSz = getStrBoundSize(this.txtRef, vLabel, 'txt-axis');
 
     this.paddig.left = this.vLabelsBndSz.width + (this._axesTxtOffs << 1);
     this.paddig.bottom = this.hLabelsBndSz.width + (this._axesTxtOffs << 1);
-    // }
   }
 
   renderLabelsForVAxis(x: number, y: number, axis: IAxis) {
@@ -340,7 +312,7 @@ export class Chart {
   renderLabelsForVAxes() {
     const res = [];
     let cntAxis = Object.keys(this._axes).length - 1; // -1 тк первые это labels для горизонтальной оси
-    let startPos = this.truncNum(this.rcChart.top - ((cntAxis * this.vLabelsBndSz.height) / 2) * 1.15);
+    let startPos = truncNum(this.rcChart.top - ((cntAxis * this.vLabelsBndSz.height) / 2) * 1.15);
 
     let key: keyof IAxes;
     for (key in this._axes) {
@@ -367,7 +339,7 @@ export class Chart {
       color = this._axes[dataFieldText].color;
       const arrStrs = chartData[dataFieldText];
 
-      dx = this.truncNum(this.hLabelsBndSz.height >> 2);
+      dx = truncNum(this.hLabelsBndSz.height >> 2);
       let stride = Math.ceil(arrStrs.length / ((this.rcChart.right - this.rcChart.left) / this.hLabelsBndSz.height));
 
       let prevDay = 0;
@@ -411,7 +383,7 @@ export class Chart {
         x={this.rcChart.left + dx}
         y={this.rcChart.bottom + this._axesTxtOffs}
         orient={AxisType.V}
-        offsX={this.truncNum(this.lnHSeg)}
+        offsX={truncNum(this.lnHSeg)}
         offsY={0}
         texts={out}
         clr={color}
@@ -431,85 +403,13 @@ export class Chart {
 
     for (let i = 0; i <= numSeg; i++) {
       // d += type + cut(pos + lnSeg * i);
-      d += `${this.truncNum(posX + lnSeg * i)} ${posY}`;
+      d += `${truncNum(posX + lnSeg * i)} ${posY}`;
       if (i < numSeg) {
         d += 'L';
       }
     }
     return d;
   }
-
-  buildAniPath(rc: IRect, min: number, max: number, data: number[]) {
-    let res = 'M';
-    for (let i = 0; i < data.length; i++) {
-      let val = data[i];
-      //   val = Math.round(((val - min) / (max - min)) * (rc.bottom - rc.top));
-      val = this.truncNum(((val - min) / (max - min)) * (rc.bottom - rc.top));
-      res += `${rc.left + this.lnHSeg * i} ${rc.bottom - val}`;
-      if (i < data.length - 1) {
-        res += 'L';
-      }
-    }
-    return res;
-  }
-
-  // render() {
-  //   return (
-  //     <Box
-  //       sx={{
-  //         // position: 'relative',
-  //         width: '100%',
-  //         height: '100%',
-  //         backgroundColor: chartBkgClr,
-  //         borderLeft: 8,
-  //         borderBottom: 8,
-  //         boxSizing: 'border-box',
-  //         // boxSizing: 'content-box',
-  //       }}
-  //     >
-  //       <svg
-  //         id='graph'
-  //         style={{ fontSize: '14px', position: 'absolute', userSelect: 'none' }}
-  //         ref={this.svgRef}
-  //         width={this.rcSvg.right - this.rcSvg.left}
-  //         height={this.rcSvg.bottom - this.rcSvg.top}
-  //       >
-  //         {/* Для вычисления высоты и ширины текста */}
-  //         <text x={-100} y={-100} ref={this.txtRef}>
-  //           test
-  //         </text>
-
-  //         <SvgMarker
-  //           id={'mrkVAxis'}
-  //           cls={{ stroke: '#1d5395', strokeWidth: '2px', fill: 'none', strokeDasharray: '4 4' }}
-  //           w={2}
-  //           h={this.rcChart.right - this.rcChart.left}
-  //           refX={0}
-  //           refY={this.rcChart.right - this.rcChart.left}
-  //           mrkEl={<line x2='0' y2={this.rcChart.right - this.rcChart.left} />}
-  //         />
-
-  //         <SvgMarker
-  //           id={'mrkHAxis'}
-  //           // cls='chart1i0i0-axis_hmarker'
-  //           cls={{ stroke: '#1d5395', strokeWidth: '2px', fill: 'none' }}
-  //           w={2}
-  //           h={6}
-  //           refX={0}
-  //           refY={6}
-  //           mrkEl={<line x2='0' y2='6' />}
-  //         />
-
-  //         {<ChartAxis axis={this._axes} />}
-
-  //         {this.chartData && <ChartData chartData={this.chartData} rcChart={this.rcChart} axes={this._axes} />}
-
-  //         {this.renderLabelsForHAxis('_id')}
-  //         {this.renderLabelsForVAxes()}
-  //       </svg>
-  //     </Box>
-  //   );
-  // }
 }
 
 export const MyChart = new Chart();

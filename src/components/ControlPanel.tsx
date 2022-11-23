@@ -9,18 +9,20 @@ import { IRequest } from '../types/types';
 
 export interface IControlPanelProps {
   date: Date;
-  range: number;
+  // range: number;
   onDate: (startData: Date, range: number) => void;
   //  children?: React.ReactNode[];
 }
 
-export const ControlPanel = ({ date, range, onDate }: IControlPanelProps) => {
+export const ControlPanel = ({ date, onDate }: IControlPanelProps) => {
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
-  // const [range, setRange] = useState(1);
+  const [range, setRange] = useState(1);
   // let [req, set_req] = useState<IRequest>({ startData: new Date('2022-01-01'), endData: new Date('2022-01-02') });
   // let [startData, set_startData] = useState(new Date('2022-01-08'));
   let [startData, set_startData] = useState(date);
+
+  // let [reqParams, set_reqParams] = useState({ startData: new Date('2021-12-28'), range: 1 });
 
   // const onAddDate = (add: number) => {
 
@@ -102,7 +104,7 @@ export const ControlPanel = ({ date, range, onDate }: IControlPanelProps) => {
       <ChatRangeControls
         range={range}
         onSelRange={(r) => {
-          // setRange(r);
+          setRange(r);
           onDate(startData, r);
         }}
         onClickArrow={(addDays: number) => {

@@ -15,10 +15,20 @@ export enum Align {
   END = 'end',
   MIDDLE = 'middle',
 }
+export interface IPos {
+  x: number;
+  y: number;
+}
 
 export interface ISize {
   width: number;
   height: number;
+}
+
+export interface INoteParams {
+  width: number;
+  height: number;
+  hStr: number;
 }
 
 export interface IAniPath {

@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import { Stack } from '@mui/material';
 import { remote_data } from './dbData';
 import { IChartData } from './types/types';
@@ -24,7 +24,7 @@ function App() {
   // let [tick, set_tick] = useState(false);
 
   // const currSensData = remote_data[0][0];
-  let [reqParams, set_reqParams] = useState({ startData: new Date('2021-12-28'), range: 1 });
+  // let [reqParams, set_reqParams] = useState({ startData: new Date('2021-12-28'), range: 1 });
   // const [range, set_range] = useState(1);
   // let [startData, set_startData] = useState(new Date('2022-01-06'));
   var inData: IChartData | undefined;
@@ -32,39 +32,77 @@ function App() {
   // let [chartData, set_chartData] = useState(inData); //{} as IChartData
   let [chartData, set_chartData] = useState({ currSensData: { _id: '', t: 0, p: 0, h: 0 }, inData }); //{} as IChartData
   // let [val, set_val] = useState(0);
-  let [sz, set_sz] = useState(0); // INFO: только для перерендера
+  // let [sz, set_sz] = useState(0); // INFO: только для перерендера
   // let size = 0;
 
-  useEffect(() => {
-    console.log('useEffect->fetch');
+  // useEffect(() => {
+  //   console.log('useEffect->fetch');
 
-    const fu = async () => {
-      const res: IResponseSensData = await fetchData(reqParams.startData, reqParams.range);
-      const out = MyChart.convertArrObjectsToObjectPropertyArrays(
-        reqParams.startData,
-        reqParams.range,
-        res.arrSensData
-      );
-      // set_chartData(() => {
-      //   return out;
-      // });
-      set_chartData({ currSensData: res.currSensData, inData: out });
+  //   const fu = async () => {
+  //     const res: IResponseSensData = await fetchData(reqParams.startData, reqParams.range);
+  //     const out = MyChart.convertArrObjectsToObjectPropertyArrays(
+  //       reqParams.startData,
+  //       reqParams.range,
+  //       res.arrSensData
+  //     );
+  //     // set_chartData(() => {
+  //     //   return out;
+  //     // });
+  //     set_chartData({ currSensData: res.currSensData, inData: out });
 
-      MyChart.calcPadding(out);
-      MyChart.resize();
+  //     MyChart.calcPadding(out);
+  //     MyChart.resize();
 
-      setTimeout(() => {
-        window.dispatchEvent(new Event('resize'));
-      }, 0);
-    };
+  //     // setTimeout(() => {
+  //     //   window.dispatchEvent(new Event('resize'));
+  //     // }, 0);
+  //   };
 
-    fu();
-  }, [reqParams]);
+  //   fu();
+  // }, [reqParams]);
+
+  //===============
+  // const fetch = useCallback(async () => {
+  //   const res: IResponseSensData = await fetchData(reqParams.startData, reqParams.range);
+  //   const out = MyChart.convertArrObjectsToObjectPropertyArrays(reqParams.startData, reqParams.range, res.arrSensData);
+  //   // set_chartData(() => {
+  //   //   return out;
+  //   // });
+  //   set_chartData({ currSensData: res.currSensData, inData: out });
+
+  //   MyChart.calcPadding(out);
+  //   MyChart.resize();
+
+  //   // setTimeout(() => {
+  //   //   window.dispatchEvent(new Event('resize'));
+  //   // }, 0);
+  // }, [reqParams]);
+
+  //===============
+  const fetch = async (startData: Date = new Date('2021-12-28'), range: number = 1) => {
+    const res: IResponseSensData = await fetchData(startData, range);
+    const out = MyChart.convertArrObjectsToObjectPropertyArrays(startData, range, res.arrSensData);
+    // set_chartData(() => {
+    //   return out;
+    // });
+    set_chartData({ currSensData: res.currSensData, inData: out });
+
+    MyChart.calcPadding(out);
+    MyChart.resize();
+
+    // setTimeout(() => {
+    //   window.dispatchEvent(new Event('resize'));
+    // }, 0);
+  };
+
+  //===============
 
   useEffect(() => {
     console.log('useEffect->app mount');
 
     initChart();
+
+    fetch();
 
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
@@ -80,7 +118,7 @@ function App() {
 
     const resize = (event: UIEvent) => {
       const target = event.target as Window;
-      set_sz(target.innerWidth); // INFO: только для перерендера
+      // set_sz(target.innerWidth); // INFO: только для перерендера
       MyChart.resize();
     };
 
@@ -90,18 +128,20 @@ function App() {
 
   return (
     <Stack sx={{ height: '100vh' }}>
-      <Header currSensData={chartData.currSensData} onUpdate={() => set_reqParams((prev) => ({ ...prev }))} />
+      {/* <Header currSensData={chartData.currSensData} onUpdate={() => set_reqParams((prev) => ({ ...prev }))} /> */}
       <ControlPanel
-        date={reqParams.startData}
-        range={reqParams.range}
+        // date={reqParams.startData}
+        date={new Date('2022-01-01')}
+        // range={reqParams.range}
         onDate={(date, range) => {
           // set_startData(date);
           // set_range(range);
-          set_reqParams({ startData: date, range });
+          fetch(date, range);
+          // set_reqParams({ startData: date, range });
         }}
       />
 
-      <ChartView chartData={chartData.inData} />
+      <ChartView chart={MyChart} chartData={chartData.inData} />
 
       {/* <Spinner msg={dataStatus} img='media/snowflake.svg#snowflake'></Spinner> */}
     </Stack>
