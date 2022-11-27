@@ -10,7 +10,7 @@ const axisDate: IAxis = {
   // cls: 'chart1i0i0-axis chart1i0i0-axis-horz',
   class: { stroke: '#1d5395', strokeWidth: '2px', fill: 'none', marker: 'url("#mrkHAxis")' },
   // class: { stroke: '#ffffff00', strokeWidth: '2px', fill: 'none', marker: 'url("#mrkHAxis")' },
-  color: '#006680',
+  color: '#00ff00',
 };
 
 const axisTemper: IAxis = {

@@ -86,6 +86,7 @@ function App() {
     //   return out;
     // });
     set_chartData({ currSensData: res.currSensData, inData: out });
+    MyChart.aniTrigEl.current?.beginElement();
 
     MyChart.calcPadding(out);
     MyChart.resize();

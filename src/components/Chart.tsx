@@ -15,8 +15,8 @@ import {
   INoteParams,
   IPos,
 } from '../types/types';
-import { ChartAxis } from './ChartAxis';
-import { Axle } from './Axle';
+import { ChartAxes } from './ChartAxes';
+import { Axis } from './Axis';
 import { SvgMarker } from './SvgMarker';
 import { ISensData, ISensDataKey } from '../types/dtos';
 import { aprox, formatDateStr, getStrBoundSize, truncNum } from '../utils/helpers';
@@ -24,8 +24,9 @@ import { TextGroup } from './SvgTextGroup';
 import { ChartData } from './ChartData';
 
 export class Chart {
-  private _numHSeg = 1;
-  private numVSeg = 2;
+  // private _numHSeg = 1;
+  private _numVSeg = 2;
+  // private _numVDiv = 2;
 
   // private chartData?: IChartData;
 
@@ -57,9 +58,17 @@ export class Chart {
   get axesTxtOffs() {
     return this._axesTxtOffs;
   }
-  get numHSeg() {
-    return this._numHSeg;
+  // get numHSeg() {
+  //   return this._numHSeg;
+  // }
+
+  get numVSeg() {
+    return this._numVSeg;
   }
+
+  // get numVDiv() {
+  //   return this._numVDiv;
+  // }
 
   private _axes: IAxes = {} as IAxes;
 
@@ -73,12 +82,20 @@ export class Chart {
     this._axes[key] = axis;
   }
 
-  get lnHSeg() {
-    return truncNum((this.rcChart.right - this.rcChart.left) / this._numHSeg);
+  // get lnHSeg() {
+  //   return truncNum((this.rcChart.right - this.rcChart.left) / this._numHSeg);
+  // }
+
+  // get lnVSeg() {
+  //   return truncNum((this.rcChart.bottom - this.rcChart.top) / this._numVSeg);
+  // }
+
+  lnHSeg(numDiv: number) {
+    return truncNum((this.rcChart.right - this.rcChart.left) / numDiv);
   }
 
   get lnVSeg() {
-    return truncNum((this.rcChart.bottom - this.rcChart.top) / this.numVSeg);
+    return truncNum((this.rcChart.bottom - this.rcChart.top) / this._numVSeg);
   }
 
   get svgRect() {
@@ -114,10 +131,11 @@ export class Chart {
   getCursorValues(pos: IPos, data: IChartData) {
     const rcClient = this.rcChart;
     const out: ICursorText[] = [];
+    const lnHSeg = this.lnHSeg(data._id.length);
     // let idxDataHit = Math.trunc((pos.x - rcClient.left) / this.lnHSeg);
     // let posInRange = (pos.x - rcClient.left) % this.lnHSeg;
-    let idxDataHit = Math.trunc(pos.x / this.lnHSeg);
-    let posInRange = pos.x % this.lnHSeg;
+    let idxDataHit = Math.trunc(pos.x / lnHSeg);
+    let posInRange = pos.x % lnHSeg;
 
     (Object.keys(data) as Array<ISensDataKey>).forEach((key, i) => {
       let sensDataByKey = data[key];
@@ -132,7 +150,7 @@ export class Chart {
         v2 = Date.parse(v2 as string);
       }
 
-      apx = aprox(v1 as number, v2 as number, this.lnHSeg, posInRange);
+      apx = aprox(v1 as number, v2 as number, lnHSeg, posInRange);
 
       if (typeof sensDataByKey[0] === 'string') {
         let d = new Date(apx).toISOString();
@@ -198,31 +216,31 @@ export class Chart {
     // });
   }
 
-  buildHAxisPath() {
-    let x = this.rcChart.left;
-    let y = this.rcChart.bottom;
-    let d = `M${truncNum(x)} ${truncNum(y)}`;
+  // buildHAxisPath() {
+  //   let x = this.rcChart.left;
+  //   let y = this.rcChart.bottom;
+  //   let d = `M${truncNum(x)} ${truncNum(y)}`;
 
-    for (let i = 1; i <= this._numHSeg; i++) {
-      d += AxisType.H + truncNum(x + this.lnHSeg * i);
-    }
-    return d;
-  }
+  //   for (let i = 1; i <= this._numHSeg; i++) {
+  //     d += AxisType.H + truncNum(x + this.lnHSeg * i);
+  //   }
+  //   return d;
+  // }
 
-  buildVAxisPath() {
-    let x = this.rcChart.left;
-    let y = this.rcChart.top;
-    let d = `M${truncNum(x)} ${truncNum(y)}`;
+  // buildVAxisPath() {
+  //   let x = this.rcChart.left;
+  //   let y = this.rcChart.top;
+  //   let d = `M${truncNum(x)} ${truncNum(y)}`;
 
-    for (let i = 1; i <= this.numVSeg; i++) {
-      d += AxisType.V + truncNum(y + this.lnVSeg * i);
-    }
-    return d;
-  }
+  //   for (let i = 1; i <= this._numVSeg; i++) {
+  //     d += AxisType.V + truncNum(y + this.lnVSeg * i);
+  //   }
+  //   return d;
+  // }
 
   convertArrObjectsToObjectPropertyArrays(startDate: Date, rangeDays: number, sensDatas: ISensData[]) {
     //WARN: side effect
-    this._numHSeg = rangeDays * 24;
+    // this._numHSeg = rangeDays * 24;
     const out: IChartData = { _id: [], t: [], p: [], h: [] };
     var newDate = new Date(startDate);
     newDate.setHours(newDate.getHours() - 1);
@@ -286,10 +304,10 @@ export class Chart {
 
   renderLabelsForVAxis(x: number, y: number, axis: IAxis) {
     const arrStrs: string[] = [];
-    let delta = (axis.max - axis.min) / this.numVSeg;
+    let delta = (axis.max - axis.min) / this._numVSeg;
     arrStrs.push('' + axis.max);
 
-    for (let i = 1; i <= this.numVSeg - 1; i++) {
+    for (let i = 1; i <= this._numVSeg - 1; i++) {
       arrStrs.push('' + (axis.max - i * delta));
     }
     arrStrs.push('' + axis.min);
@@ -334,6 +352,7 @@ export class Chart {
     var out: string[] = [];
     var dx: number = 0;
     var color = '#ffffff';
+    const lnHSeg = this.lnHSeg(chartData ? chartData._id.length - 1 : 1);
 
     if (chartData) {
       color = this._axes[dataFieldText].color;
@@ -383,7 +402,7 @@ export class Chart {
         x={this.rcChart.left + dx}
         y={this.rcChart.bottom + this._axesTxtOffs}
         orient={AxisType.V}
-        offsX={truncNum(this.lnHSeg)}
+        offsX={truncNum(lnHSeg)}
         offsY={0}
         texts={out}
         clr={color}
@@ -393,23 +412,23 @@ export class Chart {
   }
 
   // getOrthoPath (x: number, y: number, size: number, numSeg: number, type: AxisType)  {
-  getOrthoPath(x: number, y: number, type: AxisType) {
-    let d = 'M';
-    let posX = type === AxisType.H ? x : y;
-    let posY = type === AxisType.H ? y : x;
-    var numSeg = type === AxisType.H ? this._numHSeg : this.numVSeg;
-    // let lnSeg = size / numSeg;
-    let lnSeg = AxisType.H ? this.lnHSeg : this.lnVSeg;
+  // getOrthoPath(x: number, y: number, type: AxisType) {
+  //   let d = 'M';
+  //   let posX = type === AxisType.H ? x : y;
+  //   let posY = type === AxisType.H ? y : x;
+  //   var numSeg = type === AxisType.H ? this._numHSeg : this._numVSeg;
+  //   // let lnSeg = size / numSeg;
+  //   let lnSeg = AxisType.H ? this.lnHSeg : this.lnVSeg;
 
-    for (let i = 0; i <= numSeg; i++) {
-      // d += type + cut(pos + lnSeg * i);
-      d += `${truncNum(posX + lnSeg * i)} ${posY}`;
-      if (i < numSeg) {
-        d += 'L';
-      }
-    }
-    return d;
-  }
+  //   for (let i = 0; i <= numSeg; i++) {
+  //     // d += type + cut(pos + lnSeg * i);
+  //     d += `${truncNum(posX + lnSeg * i)} ${posY}`;
+  //     if (i < numSeg) {
+  //       d += 'L';
+  //     }
+  //   }
+  //   return d;
+  // }
 }
 
 export const MyChart = new Chart();

@@ -34,7 +34,8 @@ export interface INoteParams {
 export interface IAniPath {
   t: string;
   d: string;
-  data: number[];
+  // data: number[];
+  dataLen: number;
 }
 
 export interface ICursorText {

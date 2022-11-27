@@ -4,18 +4,24 @@ import { ISensDataKey } from '../types/dtos';
 import { AniPath } from './AniPath';
 
 export interface IChartDataProps {
-  chartData: IChartData;
   rcChart: IRect;
-  axes: IAxes;
   lnHSeg: number;
+  axes: IAxes;
+  chartData: IChartData;
 }
 
-export const ChartData = ({ lnHSeg, axes, rcChart, chartData }: IChartDataProps) => {
+export const ChartData = ({ rcChart, lnHSeg, axes, chartData }: IChartDataProps) => {
+  console.log('ChartData->', {
+    lnHSeg,
+    axes,
+    rcChart,
+    chartData,
+  });
+
   return (
     <>
       {(Object.keys(chartData) as Array<ISensDataKey>).map((key) => {
         if (key !== '_id') {
-          // return <AniPath key={key} id={key} rcChart={rcChart} axis={axes[key]} data={chartData[key]} />;
           return (
             <AniPath key={key} lnHSeg={lnHSeg} id={key} rcChart={rcChart} axis={axes[key]} data={chartData[key]} />
           );

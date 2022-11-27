@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 import { IChartData, IPos, IRect } from '../types/types';
 import { Chart, MyChart } from './Chart';
 import { chartBkgClr } from '../mui/theme';
-import { ChartAxis } from './ChartAxis';
+import { ChartAxes } from './ChartAxes';
 import { ChartData } from './ChartData';
 import { SvgMarker } from './SvgMarker';
 import { ChartCursor } from './ChartCursor';
@@ -19,7 +19,9 @@ export interface IChartViewProps {
 // export const ChartView = ({ chart, rcChart, chartData }: IChartViewProps) => {
 export const ChartView = ({ chart, chartData }: IChartViewProps) => {
   const rcChart = chart.rcChart;
-  chart.aniTrigEl.current?.beginElement();
+  const lnData = chartData ? chartData._id.length - 1 : 1;
+  // chart.aniTrigEl.current?.beginElement();
+
   // INFO: координаты в пространстве svg, ограниченные rcChart
   let [pos, set_pos] = useState<IPos>({ x: rcChart.left, y: rcChart.top });
 
@@ -114,9 +116,20 @@ export const ChartView = ({ chart, chartData }: IChartViewProps) => {
           mrkEl={<line x2='0' y2='6' />}
         />
 
-        {<ChartAxis axis={chart.axes2} />}
+        {/* {<ChartAxes axis={chart.axes2} chart={chart} />} */}
 
-        {chartData && <ChartData lnHSeg={chart.lnHSeg} chartData={chartData} rcChart={rcChart} axes={chart.axes2} />}
+        <ChartAxes
+          rcChart={rcChart}
+          numHSeg={lnData}
+          lnHSeg={chart.lnHSeg(lnData)}
+          numVSeg={chart.numVSeg}
+          lnVSeg={chart.lnVSeg}
+          axes={chart.axes2}
+        />
+
+        {chartData && (
+          <ChartData lnHSeg={chart.lnHSeg(lnData)} chartData={chartData} rcChart={rcChart} axes={chart.axes2} />
+        )}
 
         {chart.renderLabelsForHAxis('_id', chartData)}
         {chart.renderLabelsForVAxes()}

@@ -1,4 +1,4 @@
-import { ICursorText, INoteParams, IRect } from '../types/types';
+import { AxisType, ICursorText, INoteParams, IRect } from '../types/types';
 
 export const formatDateStr = (str: string) => {
   // let data = new Date(str);
@@ -97,4 +97,27 @@ export const buildAniPath = (lnHSeg: number, rc: IRect, min: number, max: number
     }
   }
   return res;
+};
+
+// export const getOrthoPathNew=(x: number, y: number, numSeg: number, lnSeg: number, type: AxisType)=>{
+// export const getOrthoPathNew = (x: number, y: number, numSeg: number, lnSeg: number) => {
+export const getOrthoPathNew = (rc: IRect, numSeg: number, lnSeg: number, type: AxisType) => {
+  let d = 'M';
+  // let x = rc.left;
+  const y = type === AxisType.H ? rc.bottom : rc.top;
+  const kX = type === AxisType.H ? 1 : 0;
+  const kY = type === AxisType.V ? 1 : 0;
+
+  // var numSeg = type === AxisType.H ? this._numHSeg : this._numVSeg;
+  // let lnSeg = size / numSeg;
+  // let lnSeg = AxisType.H ? this.lnHSeg : this.lnVSeg;
+
+  for (let i = 0; i <= numSeg; i++) {
+    // d += type + cut(pos + lnSeg * i);
+    d += `${truncNum(rc.left + lnSeg * i * kX)} ${y + lnSeg * i * kY}`;
+    if (i < numSeg) {
+      d += 'L';
+    }
+  }
+  return d;
 };
